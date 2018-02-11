@@ -1,56 +1,15 @@
-var myLocation = 'Chicago';
-var xmlHttp = new XMLHttpRequest();
+document.addEventListener('DOMContentLoaded', () => {
+    let xhr = new XMLHttpRequest();
+    let Events = {};
+    let Body = document.getElementsByTagName('body')[0];
+    let url = "https://www.eventbriteapi.com/v3/events/search/?q=learning&sort_by=date&location.address=BOSTON&start_date.keyword=next_week&token=UTQGSUSZYKSMOZK6VSC3"
 
-function getEvents(callback, page=1, events) {
-    console.log(`Getting page ${page}`);
-
-    $.get('https://www.eventbriteapi.com/v3/events/search/', {
-            token: 'UTQGSUSZYKSMOZK6VSC3',
-            subcategories: 2004,
-            sort_by: 'date',
-            'start_date.keyword': 'next_week',
-            'location.address': myLocation,
-            page
-    }).done(function( body ) {
-
-        events = events ? events.concat(body.events) : body.events;
-
-        if (body.pagination.page_count <= page) {
-            callback(events);
-        } else {
-            getEvents(callback, page + 1, events);
-        }
-
-    	$( ".result" ).html(data);
-	  alert( "Load was performed." );
-	}).fail(function(data) {
-            console.log('Error:', data);
-  });
-}
-
-function writeData(events) {
-    console.log('Writing');
-    let htmlEvents = '';
-    let weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    let currentDay = -1;
-
-    for (let i = 0; i < events.length; ++i) {
-        let date = new Date(events[i].start.utc);
-        let day = date.getDay();
-
-        htmlEvents += `
-        <div>
-            <h1 style="text-align: center">${currentDay !== day ? weekday[day] : ''}</h1>
-            <h2><a href="${events[i].url}">${events[i].name.text}...</a></h2>
-            Date: ${date}<br/>
-            ${events[i].description.text}
-            <hr/>
-        </div>`;
-
-        currentDay = day;
-    }
-
-    $('#root').append(htmlEvents);
-}
-
-getEvents(writeData);
+    xhr.open("GET", url, true);  
+    xhr.onload = function () {
+        Events = JSON.parse(xhr.response).events;
+	    Events.forEach((event) => {
+		    Body.innerText = Body.innerText + event.start.local + ' ' + event.name.text + '\n' + event.description.text + '\n\n';
+	    })
+    };
+    xhr.send();
+});
